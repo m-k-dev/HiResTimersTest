@@ -157,11 +157,11 @@ public static class TestTimer1
 	{
 		// HiResTimer timer = new(0);
 
-		BlockingCollection<int> blockingCollection = new( );
+		BlockingCollection<int> blockingCollection = new(3);
 		new Thread(() => ProduceValues7(blockingCollection)).Start();
 
 		Thread.Sleep(15);
-		using CStopwatch stopWatch = new("BlockingCollection");
+		using CStopwatch stopWatch = new("Test BlockingCollection");
 
 		for (int i = 0; i < IterationsCount; ++i)
 		{
