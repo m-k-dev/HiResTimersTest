@@ -50,7 +50,7 @@ public class HiResTimer : IDisposable
 		if (LastStatus == 0)
 		{
 			InitialResolution = CurrentResolution;
-			SetTimerResolution(newResolution);
+			SetTimerResolution(Math.Max(newResolution, _maximumResolution));
 		}
 	}
 
@@ -80,16 +80,8 @@ public class HiResTimer : IDisposable
 		return LastStatus = NtDelayExecution(false, in delayInterval);
 	}
 
-	public uint DelayExecutionMs(long delayInterval)
-	{
-		if (_currentResolution != 0)
-			delayInterval = delayInterval * 10000 / _currentResolution;
-		else
-			throw new InvalidCastException("Unknown current timer resolution");
-
-		return DelayExecution(delayInterval);
-	}
-
+	public uint DelayExecutionMs(long delayInterval) => DelayExecution(delayInterval * 10000);
+	
 	public void Dispose()
 	{
 		if (InitialResolution != default)
