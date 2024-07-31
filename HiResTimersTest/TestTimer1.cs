@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,9 +37,11 @@ public static class TestTimer1
 		Test0();
 		Test1();
 		Test2();
-		Test3().Wait();
-		Test4();
+		// Test3().Wait();
+		// Test4();
 		Test5();
+		Test6();
+		Test7();
 	}
 
 	private static void Test0()
@@ -62,7 +65,7 @@ public static class TestTimer1
 		using CStopwatch stopWatch = new("Running timer (timeBeginPeriod(1), Sleep):", true);
 
 		timeBeginPeriod(1);
-		
+
 		for (int i = 0; i < IterationsCount; ++i)
 			Thread.Sleep(1);
 
@@ -103,26 +106,80 @@ public static class TestTimer1
 
 		NtSetTimerResolution(previousResolution, true, out _);
 	}
+
 	private static void Test5()
 	{
 		Console.WriteLine();
 		Console.WriteLine("Running timer (NtSetTimerResolution, NtDelayExecution)");
 		using CStopwatch stopWatch = new("Elapsed (new implementation): ");
-
-		using HiResTimer timer = new();
-		if (timer.LastStatus == 0)
-			timer.SetTimerResolution(timer.MaximumResolution);
+		
+		using HiResTimer timer = new(0); // max resolution
 		if (timer.LastStatus != 0)
 		{
 			Console.WriteLine($"Error setting timer resolution, nt status code = {timer.LastStatus}");
 			return;
-		}		
+		}
 
 		Console.WriteLine(
 			$"MinRes = {timer.MinimumResolution}, MaxRes = {timer.MaximumResolution}, " +
 			$"PrevRes = {timer.InitialResolution}, NewRes = {timer.CurrentResolution}");
 
 		for (int i = 0; i < IterationsCount; ++i)
-			timer.DelayExecution(-1);
+			timer.DelayExecution(-1); // min delay
+	}
+
+	private static void Test6()
+	{
+		AutoResetEvent autoResetEvent1 = new AutoResetEvent(false);
+		AutoResetEvent autoResetEvent2 = new AutoResetEvent(false);
+		new Thread(() => FireEvents6(autoResetEvent1, autoResetEvent2)).Start();
+
+		Thread.Sleep(15);
+		using CStopwatch stopWatch = new("Test WaitOne / AutoResetEvent");
+
+		for (int i = 0; i < IterationsCount; ++i)
+		{
+			autoResetEvent2.Set();
+			autoResetEvent1.WaitOne();
+		}
+	}
+
+	private static void FireEvents6(AutoResetEvent autoResetEvent1, AutoResetEvent autoResetEvent2)
+	{
+		for (int i = 0; i < IterationsCount; ++i)
+		{
+			autoResetEvent2.WaitOne();
+			autoResetEvent1.Set();
+		}
+	}
+	
+	private static void Test7()
+	{
+		// HiResTimer timer = new(0);
+
+		BlockingCollection<int> blockingCollection = new( );
+		new Thread(() => ProduceValues7(blockingCollection)).Start();
+
+		Thread.Sleep(15);
+		using CStopwatch stopWatch = new("BlockingCollection");
+
+		for (int i = 0; i < IterationsCount; ++i)
+		{
+			int val = blockingCollection.Take();
+			// Console.WriteLine($"{i} consumed");
+			// timer.DelayExecutionMs(10);
+		}
+	}
+
+	private static void ProduceValues7(BlockingCollection<int> blockingCollection)
+	{
+		// HiResTimer timer = new(0);
+		
+		for (int i = 0; i < IterationsCount; ++i)
+		{
+			blockingCollection.Add(i);
+			// Console.WriteLine($"{i} produced");
+			// timer.DelayExecutionMs(10);
+		}
 	}
 }
