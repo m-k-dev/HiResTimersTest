@@ -33,11 +33,12 @@ public static class TestTimer1
 		Console.WriteLine($"Iterations count: {IterationsCount}");
 		Console.WriteLine();
 
-		Test0();
-		Test1();
-		Test2();
-		Test3().Wait();
-		Test4();
+		// Test0();
+		// Test1();
+		// Test2();
+		// Test3().Wait();
+		// Test4();
+		Test5();
 	}
 
 	private static void Test0()
@@ -101,5 +102,27 @@ public static class TestTimer1
 			NtDelayExecution(false, ref interval);
 
 		NtSetTimerResolution(previousResolution, true, out _);
+	}
+	private static void Test5()
+	{
+		Console.WriteLine();
+		Console.WriteLine("Running timer (NtSetTimerResolution, NtDelayExecution)");
+		using CStopwatch stopWatch = new("Elapsed: ");
+
+		using HiResTimer timer = new();
+		if (timer.LastStatus == 0)
+			timer.SetTimerResolution(timer.MaximumResolution);
+		if (timer.LastStatus != 0)
+		{
+			Console.WriteLine($"Error setting timer resolution, nt status code = {timer.LastStatus}");
+			return;
+		}		
+
+		Console.WriteLine(
+			$"MinRes = {timer.MinimumResolution}, MaxRes = {timer.MaximumResolution}, " +
+			$"PrevRes = {timer.InitialResolution}, NewRes = {timer.CurrentResolution}");
+
+		for (int i = 0; i < IterationsCount; ++i)
+			timer.DelayExecution(-1);
 	}
 }
