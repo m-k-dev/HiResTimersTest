@@ -33,11 +33,11 @@ public static class TestTimer1
 		Console.WriteLine($"Iterations count: {IterationsCount}");
 		Console.WriteLine();
 
-		// Test0();
-		// Test1();
-		// Test2();
-		// Test3().Wait();
-		// Test4();
+		Test0();
+		Test1();
+		Test2();
+		Test3().Wait();
+		Test4();
 		Test5();
 	}
 
@@ -107,7 +107,7 @@ public static class TestTimer1
 	{
 		Console.WriteLine();
 		Console.WriteLine("Running timer (NtSetTimerResolution, NtDelayExecution)");
-		using CStopwatch stopWatch = new("Elapsed: ");
+		using CStopwatch stopWatch = new("Elapsed (new implementation): ");
 
 		using HiResTimer timer = new();
 		if (timer.LastStatus == 0)
